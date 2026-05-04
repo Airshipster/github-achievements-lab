@@ -10,6 +10,7 @@ from src.tracker import (
     format_event_table,
     limit_events,
     load_events,
+    order_events,
     parse_timestamp,
     save_events,
     summarize,
@@ -18,6 +19,13 @@ from src.tracker import (
 
 
 class TrackerTests(unittest.TestCase):
+    def test_order_events_can_reverse_event_order(self):
+        events = [
+            ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
+            ActivityEvent("2026-05-04T00:01:00+00:00", "issue", "track question"),
+        ]
+
+        self.assertEqual([event.title for event in order_events(events, reverse=True)], ["track question", "initial commit"])
     def test_limit_events_returns_requested_prefix(self):
         events = [
             ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
@@ -164,6 +172,7 @@ class TrackerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
 
 
