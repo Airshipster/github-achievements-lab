@@ -83,9 +83,9 @@ def append_markdown_log(event: ActivityEvent, path: Path = MARKDOWN_LOG) -> None
         handle.write(f"- {event.timestamp} | {event.event_type} | {event.title}{details}\n")
 
 
-def record_event(event_type: str, title: str, details: str = "") -> ActivityEvent:
+def record_event(event_type: str, title: str, details: str = "", timestamp: str | None = None) -> ActivityEvent:
     event = ActivityEvent(
-        timestamp=utc_now(),
+        timestamp=timestamp or utc_now(),
         event_type=event_type,
         title=title.strip(),
         details=details.strip(),
@@ -188,6 +188,7 @@ def build_parser() -> argparse.ArgumentParser:
     record.add_argument("--type", required=True, choices=sorted(VALID_EVENT_TYPES))
     record.add_argument("--title", required=True)
     record.add_argument("--details", default="")
+    record.add_argument("--timestamp", default=None, help="ISO timestamp for imported events")
 
     export = subcommands.add_parser("export-csv", help="write recorded events to CSV")
     export.add_argument("--output", required=True, type=Path)
@@ -212,7 +213,7 @@ def main() -> int:
     args = build_parser().parse_args()
 
     if args.command == "record":
-        event = record_event(args.type, args.title, args.details)
+        event = record_event(args.type, args.title, args.details, args.timestamp)
         print(f"Recorded {event.event_type}: {event.title}")
         return 0
 
@@ -245,6 +246,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
 
 
