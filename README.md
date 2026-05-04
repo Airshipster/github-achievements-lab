@@ -55,6 +55,24 @@ Show a summary:
 python src/tracker.py summary
 ```
 
+Show a filtered summary as JSON:
+
+```powershell
+python src/tracker.py summary --type commit --since 2026-05-04T00:00:00Z --json --total
+```
+
+List recent events:
+
+```powershell
+python src/tracker.py list --reverse --limit 5
+```
+
+Export filtered events to CSV:
+
+```powershell
+python src/tracker.py export-csv --type issue --output exports/issues.csv
+```
+
 Run tests:
 
 ```powershell
@@ -64,3 +82,4 @@ python -m unittest discover -s tests
 ## Status
 
 Ongoing experiment.
+
