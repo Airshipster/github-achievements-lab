@@ -173,6 +173,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     export = subcommands.add_parser("export-csv", help="write recorded events to CSV")
     export.add_argument("--output", required=True, type=Path)
+    export.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
+    export.add_argument("--since", default=None, help="include events at or after this ISO timestamp")
 
     list_events = subcommands.add_parser("list", help="print recorded events")
     list_events.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
@@ -194,7 +196,8 @@ def main() -> int:
         return 0
 
     if args.command == "export-csv":
-        export_csv(args.output, load_events())
+        events = filter_events(load_events(), args.type, args.since)
+        export_csv(args.output, events)
         print(f"Exported activity events to {args.output}")
         return 0
 
@@ -221,3 +224,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+
