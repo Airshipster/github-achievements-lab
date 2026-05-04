@@ -29,6 +29,7 @@ VALID_EVENT_TYPES = {
 }
 
 CSV_FIELDS = ["timestamp", "event_type", "title", "details"]
+TABLE_FIELDS = ["timestamp", "event_type", "title"]
 
 
 @dataclass(frozen=True)
@@ -138,6 +139,25 @@ def export_csv(output_path: Path, events: Iterable[ActivityEvent]) -> None:
     output_path.write_text(events_to_csv(events), encoding="utf-8")
 
 
+def format_event_table(events: Iterable[ActivityEvent]) -> str:
+    rows = []
+    for event in events:
+        event.validate()
+        rows.append([event.timestamp, event.event_type, event.title])
+
+    if not rows:
+        return "No events recorded yet."
+
+    widths = [len(field) for field in TABLE_FIELDS]
+    for row in rows:
+        widths = [max(width, len(value)) for width, value in zip(widths, row)]
+
+    header = "  ".join(field.ljust(width) for field, width in zip(TABLE_FIELDS, widths))
+    divider = "  ".join("-" * width for width in widths)
+    body = ["  ".join(value.ljust(width) for value, width in zip(row, widths)) for row in rows]
+    return "\n".join([header, divider, *body])
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Track local experiment activity")
     subcommands = parser.add_subparsers(dest="command", required=True)
@@ -149,6 +169,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     export = subcommands.add_parser("export-csv", help="write recorded events to CSV")
     export.add_argument("--output", required=True, type=Path)
+
+    list_events = subcommands.add_parser("list", help="print recorded events")
+    list_events.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
+    list_events.add_argument("--since", default=None, help="include events at or after this ISO timestamp")
 
     summary = subcommands.add_parser("summary", help="print activity counts by event type")
     summary.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
@@ -167,6 +191,11 @@ def main() -> int:
     if args.command == "export-csv":
         export_csv(args.output, load_events())
         print(f"Exported activity events to {args.output}")
+        return 0
+
+    if args.command == "list":
+        events = filter_events(load_events(), args.type, args.since)
+        print(format_event_table(events))
         return 0
 
     if args.command == "summary":
