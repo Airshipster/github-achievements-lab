@@ -138,6 +138,10 @@ def summarize(events: Iterable[ActivityEvent]) -> dict[str, int]:
     return {key: value for key, value in summary.items() if value}
 
 
+def summary_total(summary: dict[str, int]) -> int:
+    return sum(summary.values())
+
+
 def summary_to_json(summary: dict[str, int]) -> str:
     return json.dumps(summary, indent=2, sort_keys=True) + "\n"
 
@@ -200,6 +204,7 @@ def build_parser() -> argparse.ArgumentParser:
     summary.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
     summary.add_argument("--since", default=None, help="include events at or after this ISO timestamp")
     summary.add_argument("--json", action="store_true", help="print summary as JSON")
+    summary.add_argument("--total", action="store_true", help="include total event count")
     return parser
 
 
@@ -240,6 +245,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
 
 
