@@ -17,6 +17,7 @@ from src.tracker import (
     summarize,
     summary_total,
     summary_to_json,
+    validate_events,
 )
 
 
@@ -40,6 +41,13 @@ class TrackerTests(unittest.TestCase):
     def test_limit_events_rejects_negative_limit(self):
         with self.assertRaises(ValueError):
             limit_events([], -1)
+    def test_validate_events_returns_count_for_valid_events(self):
+        events = [
+            ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
+            ActivityEvent("2026-05-04T00:01:00+00:00", "issue", "track question"),
+        ]
+
+        self.assertEqual(validate_events(events), 2)
     def test_summarize_counts_events_by_type(self):
         events = [
             ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
@@ -190,6 +198,7 @@ class TrackerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
 
 

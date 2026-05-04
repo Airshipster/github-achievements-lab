@@ -137,6 +137,14 @@ def limit_events(events: Iterable[ActivityEvent], limit: int | None = None) -> l
     return event_list[:limit]
 
 
+def validate_events(events: Iterable[ActivityEvent]) -> int:
+    count = 0
+    for event in events:
+        event.validate()
+        count += 1
+    return count
+
+
 def summarize(events: Iterable[ActivityEvent]) -> dict[str, int]:
     summary = {event_type: 0 for event_type in sorted(VALID_EVENT_TYPES)}
     for event in events:
@@ -208,6 +216,8 @@ def build_parser() -> argparse.ArgumentParser:
     list_events.add_argument("--limit", type=int, default=None, help="maximum number of events to print")
     list_events.add_argument("--reverse", action="store_true", help="print newest matching events first")
 
+    subcommands.add_parser("validate", help="validate recorded events")
+
     summary = subcommands.add_parser("summary", help="print activity counts by event type")
     summary.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
     summary.add_argument("--since", default=None, help="include events at or after this ISO timestamp")
@@ -228,6 +238,11 @@ def main() -> int:
         events = filter_events(load_events(), args.type, args.since)
         export_csv(args.output, events)
         print(f"Exported activity events to {args.output}")
+        return 0
+
+    if args.command == "validate":
+        count = validate_events(load_events())
+        print(f"Validated {count} event(s).")
         return 0
 
     if args.command == "list":
@@ -253,6 +268,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
 
 
