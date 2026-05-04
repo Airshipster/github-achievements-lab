@@ -73,6 +73,12 @@ Export filtered events to CSV:
 python src/tracker.py export-csv --type issue --output exports/issues.csv
 ```
 
+Validate recorded events:
+
+```powershell
+python src/tracker.py validate
+```
+
 Run tests:
 
 ```powershell
@@ -82,4 +88,6 @@ python -m unittest discover -s tests
 ## Status
 
 Ongoing experiment.
+
+
 
