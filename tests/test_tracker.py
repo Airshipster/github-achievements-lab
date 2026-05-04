@@ -7,6 +7,7 @@ from src.tracker import (
     events_to_csv,
     export_csv,
     filter_events,
+    format_event_table,
     load_events,
     parse_timestamp,
     save_events,
@@ -67,6 +68,22 @@ class TrackerTests(unittest.TestCase):
 
     def test_parse_timestamp_treats_naive_values_as_utc(self):
         self.assertEqual(parse_timestamp("2026-05-04T00:00:00").tzinfo.utcoffset(None).total_seconds(), 0)
+
+    def test_format_event_table_renders_headers_and_rows(self):
+        events = [
+            ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
+            ActivityEvent("2026-05-04T00:01:00+00:00", "issue", "track question"),
+        ]
+
+        table = format_event_table(events)
+
+        self.assertIn("timestamp", table)
+        self.assertIn("event_type", table)
+        self.assertIn("initial commit", table)
+        self.assertIn("track question", table)
+
+    def test_format_event_table_handles_empty_events(self):
+        self.assertEqual(format_event_table([]), "No events recorded yet.")
 
     def test_empty_title_is_rejected(self):
         event = ActivityEvent("2026-05-04T00:00:00+00:00", "note", " ")
