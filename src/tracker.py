@@ -1,0 +1,130 @@
+"""Small local tracker for documenting repository activity.
+
+The tracker intentionally works on local Markdown/JSON files only. It does not call
+GitHub APIs or automate platform activity.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Iterable
+
+ROOT = Path(__file__).resolve().parents[1]
+DATA_FILE = ROOT / "logs" / "activity-events.json"
+MARKDOWN_LOG = ROOT / "logs" / "activity-log.md"
+
+VALID_EVENT_TYPES = {
+    "commit",
+    "issue",
+    "pull_request",
+    "discussion",
+    "refactor",
+    "note",
+}
+
+
+@dataclass(frozen=True)
+class ActivityEvent:
+    timestamp: str
+    event_type: str
+    title: str
+    details: str = ""
+
+    def validate(self) -> None:
+        if self.event_type not in VALID_EVENT_TYPES:
+            allowed = ", ".join(sorted(VALID_EVENT_TYPES))
+            raise ValueError(f"Unknown event type '{self.event_type}'. Expected one of: {allowed}")
+        if not self.title.strip():
+            raise ValueError("Event title cannot be empty")
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def load_events(path: Path = DATA_FILE) -> list[ActivityEvent]:
+    if not path.exists():
+        return []
+    raw_events = json.loads(path.read_text(encoding="utf-8"))
+    return [ActivityEvent(**item) for item in raw_events]
+
+
+def save_events(events: Iterable[ActivityEvent], path: Path = DATA_FILE) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    serialized = [asdict(event) for event in events]
+    path.write_text(json.dumps(serialized, indent=2) + "\n", encoding="utf-8")
+
+
+def append_markdown_log(event: ActivityEvent, path: Path = MARKDOWN_LOG) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists():
+        path.write_text("# Activity Log\n\n", encoding="utf-8")
+
+    details = f" - {event.details.strip()}" if event.details.strip() else ""
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(f"- {event.timestamp} | {event.event_type} | {event.title}{details}\n")
+
+
+def record_event(event_type: str, title: str, details: str = "") -> ActivityEvent:
+    event = ActivityEvent(
+        timestamp=utc_now(),
+        event_type=event_type,
+        title=title.strip(),
+        details=details.strip(),
+    )
+    event.validate()
+
+    events = load_events()
+    events.append(event)
+    save_events(events)
+    append_markdown_log(event)
+    return event
+
+
+def summarize(events: Iterable[ActivityEvent]) -> dict[str, int]:
+    summary = {event_type: 0 for event_type in sorted(VALID_EVENT_TYPES)}
+    for event in events:
+        event.validate()
+        summary[event.event_type] += 1
+    return {key: value for key, value in summary.items() if value}
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Track local experiment activity")
+    subcommands = parser.add_subparsers(dest="command", required=True)
+
+    record = subcommands.add_parser("record", help="record one activity event")
+    record.add_argument("--type", required=True, choices=sorted(VALID_EVENT_TYPES))
+    record.add_argument("--title", required=True)
+    record.add_argument("--details", default="")
+
+    subcommands.add_parser("summary", help="print activity counts by event type")
+    return parser
+
+
+def main() -> int:
+    args = build_parser().parse_args()
+
+    if args.command == "record":
+        event = record_event(args.type, args.title, args.details)
+        print(f"Recorded {event.event_type}: {event.title}")
+        return 0
+
+    if args.command == "summary":
+        summary = summarize(load_events())
+        if not summary:
+            print("No events recorded yet.")
+            return 0
+        for event_type, count in summary.items():
+            print(f"{event_type}: {count}")
+        return 0
+
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
