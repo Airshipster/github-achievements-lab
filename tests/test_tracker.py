@@ -2,7 +2,14 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.tracker import ActivityEvent, summarize, save_events, load_events
+from src.tracker import (
+    ActivityEvent,
+    events_to_csv,
+    export_csv,
+    load_events,
+    save_events,
+    summarize,
+)
 
 
 class TrackerTests(unittest.TestCase):
@@ -29,6 +36,31 @@ class TrackerTests(unittest.TestCase):
             save_events(events, path)
 
             self.assertEqual(load_events(path), events)
+
+    def test_events_to_csv_includes_header_and_escaped_fields(self):
+        events = [
+            ActivityEvent(
+                "2026-05-04T00:00:00+00:00",
+                "note",
+                "review export",
+                "contains, comma",
+            )
+        ]
+
+        self.assertEqual(
+            events_to_csv(events),
+            'timestamp,event_type,title,details\n2026-05-04T00:00:00+00:00,note,review export,"contains, comma"\n',
+        )
+
+    def test_export_csv_writes_file(self):
+        events = [ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit")]
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = Path(tmp_dir) / "exports" / "activity.csv"
+            export_csv(path, events)
+
+            self.assertTrue(path.exists())
+            self.assertIn("initial commit", path.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

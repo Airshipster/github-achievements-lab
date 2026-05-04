@@ -7,6 +7,8 @@ GitHub APIs or automate platform activity.
 from __future__ import annotations
 
 import argparse
+import csv
+import io
 import json
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
@@ -25,6 +27,8 @@ VALID_EVENT_TYPES = {
     "refactor",
     "note",
 }
+
+CSV_FIELDS = ["timestamp", "event_type", "title", "details"]
 
 
 @dataclass(frozen=True)
@@ -93,6 +97,21 @@ def summarize(events: Iterable[ActivityEvent]) -> dict[str, int]:
     return {key: value for key, value in summary.items() if value}
 
 
+def events_to_csv(events: Iterable[ActivityEvent]) -> str:
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=CSV_FIELDS, lineterminator="\n")
+    writer.writeheader()
+    for event in events:
+        event.validate()
+        writer.writerow(asdict(event))
+    return output.getvalue()
+
+
+def export_csv(output_path: Path, events: Iterable[ActivityEvent]) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(events_to_csv(events), encoding="utf-8")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Track local experiment activity")
     subcommands = parser.add_subparsers(dest="command", required=True)
@@ -101,6 +120,9 @@ def build_parser() -> argparse.ArgumentParser:
     record.add_argument("--type", required=True, choices=sorted(VALID_EVENT_TYPES))
     record.add_argument("--title", required=True)
     record.add_argument("--details", default="")
+
+    export = subcommands.add_parser("export-csv", help="write recorded events to CSV")
+    export.add_argument("--output", required=True, type=Path)
 
     subcommands.add_parser("summary", help="print activity counts by event type")
     return parser
@@ -112,6 +134,11 @@ def main() -> int:
     if args.command == "record":
         event = record_event(args.type, args.title, args.details)
         print(f"Recorded {event.event_type}: {event.title}")
+        return 0
+
+    if args.command == "export-csv":
+        export_csv(args.output, load_events())
+        print(f"Exported activity events to {args.output}")
         return 0
 
     if args.command == "summary":
