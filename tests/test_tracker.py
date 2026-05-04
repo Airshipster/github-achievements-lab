@@ -110,6 +110,19 @@ class TrackerTests(unittest.TestCase):
 
             self.assertEqual(load_events(path), events)
 
+    def test_filtered_events_can_be_exported_to_csv(self):
+        events = [
+            ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
+            ActivityEvent("2026-05-04T00:01:00+00:00", "issue", "track question"),
+            ActivityEvent("2026-05-04T00:02:00+00:00", "commit", "docs update"),
+        ]
+
+        csv_output = events_to_csv(filter_events(events, event_type="commit", since="2026-05-04T00:01:00Z"))
+
+        self.assertIn("docs update", csv_output)
+        self.assertNotIn("initial commit", csv_output)
+        self.assertNotIn("track question", csv_output)
+
     def test_events_to_csv_includes_header_and_escaped_fields(self):
         events = [
             ActivityEvent(
@@ -138,3 +151,5 @@ class TrackerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
