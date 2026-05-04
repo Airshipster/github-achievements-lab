@@ -83,7 +83,14 @@ def append_markdown_log(event: ActivityEvent, path: Path = MARKDOWN_LOG) -> None
         handle.write(f"- {event.timestamp} | {event.event_type} | {event.title}{details}\n")
 
 
-def record_event(event_type: str, title: str, details: str = "", timestamp: str | None = None) -> ActivityEvent:
+def record_event(
+    event_type: str,
+    title: str,
+    details: str = "",
+    timestamp: str | None = None,
+    data_path: Path = DATA_FILE,
+    markdown_path: Path = MARKDOWN_LOG,
+) -> ActivityEvent:
     event = ActivityEvent(
         timestamp=timestamp or utc_now(),
         event_type=event_type,
@@ -246,6 +253,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
 
 
