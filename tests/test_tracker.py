@@ -8,6 +8,7 @@ from src.tracker import (
     export_csv,
     filter_events,
     format_event_table,
+    limit_events,
     load_events,
     parse_timestamp,
     save_events,
@@ -17,6 +18,18 @@ from src.tracker import (
 
 
 class TrackerTests(unittest.TestCase):
+    def test_limit_events_returns_requested_prefix(self):
+        events = [
+            ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
+            ActivityEvent("2026-05-04T00:01:00+00:00", "issue", "track question"),
+            ActivityEvent("2026-05-04T00:02:00+00:00", "commit", "docs update"),
+        ]
+
+        self.assertEqual([event.title for event in limit_events(events, 2)], ["initial commit", "track question"])
+
+    def test_limit_events_rejects_negative_limit(self):
+        with self.assertRaises(ValueError):
+            limit_events([], -1)
     def test_summarize_counts_events_by_type(self):
         events = [
             ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
@@ -151,5 +164,6 @@ class TrackerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
 

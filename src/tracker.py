@@ -116,6 +116,15 @@ def filter_events(
     return filtered_events
 
 
+def limit_events(events: Iterable[ActivityEvent], limit: int | None = None) -> list[ActivityEvent]:
+    event_list = list(events)
+    if limit is None:
+        return event_list
+    if limit < 0:
+        raise ValueError("Limit cannot be negative")
+    return event_list[:limit]
+
+
 def summarize(events: Iterable[ActivityEvent]) -> dict[str, int]:
     summary = {event_type: 0 for event_type in sorted(VALID_EVENT_TYPES)}
     for event in events:
@@ -179,6 +188,7 @@ def build_parser() -> argparse.ArgumentParser:
     list_events = subcommands.add_parser("list", help="print recorded events")
     list_events.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
     list_events.add_argument("--since", default=None, help="include events at or after this ISO timestamp")
+    list_events.add_argument("--limit", type=int, default=None, help="maximum number of events to print")
 
     summary = subcommands.add_parser("summary", help="print activity counts by event type")
     summary.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
@@ -224,5 +234,6 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
 
