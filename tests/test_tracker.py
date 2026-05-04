@@ -8,6 +8,7 @@ from src.tracker import (
     export_csv,
     filter_events,
     load_events,
+    parse_timestamp,
     save_events,
     summarize,
 )
@@ -42,8 +43,39 @@ class TrackerTests(unittest.TestCase):
 
         self.assertEqual(filter_events(events), events)
 
+    def test_filter_events_returns_events_at_or_after_since_timestamp(self):
+        events = [
+            ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
+            ActivityEvent("2026-05-04T00:01:00+00:00", "issue", "track question"),
+            ActivityEvent("2026-05-04T00:02:00+00:00", "commit", "docs update"),
+        ]
+
+        filtered = filter_events(events, since="2026-05-04T00:01:00+00:00")
+
+        self.assertEqual([event.title for event in filtered], ["track question", "docs update"])
+
+    def test_filter_events_combines_type_and_since_filters(self):
+        events = [
+            ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
+            ActivityEvent("2026-05-04T00:01:00+00:00", "issue", "track question"),
+            ActivityEvent("2026-05-04T00:02:00+00:00", "commit", "docs update"),
+        ]
+
+        filtered = filter_events(events, event_type="commit", since="2026-05-04T00:01:00Z")
+
+        self.assertEqual([event.title for event in filtered], ["docs update"])
+
+    def test_parse_timestamp_treats_naive_values_as_utc(self):
+        self.assertEqual(parse_timestamp("2026-05-04T00:00:00").tzinfo.utcoffset(None).total_seconds(), 0)
+
     def test_empty_title_is_rejected(self):
         event = ActivityEvent("2026-05-04T00:00:00+00:00", "note", " ")
+
+        with self.assertRaises(ValueError):
+            event.validate()
+
+    def test_invalid_timestamp_is_rejected(self):
+        event = ActivityEvent("not-a-date", "note", "invalid timestamp")
 
         with self.assertRaises(ValueError):
             event.validate()

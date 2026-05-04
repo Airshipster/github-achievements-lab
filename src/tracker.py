@@ -44,10 +44,19 @@ class ActivityEvent:
             raise ValueError(f"Unknown event type '{self.event_type}'. Expected one of: {allowed}")
         if not self.title.strip():
             raise ValueError("Event title cannot be empty")
+        parse_timestamp(self.timestamp)
 
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def parse_timestamp(value: str) -> datetime:
+    normalized = value.replace("Z", "+00:00")
+    parsed = datetime.fromisoformat(normalized)
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def load_events(path: Path = DATA_FILE) -> list[ActivityEvent]:
@@ -89,12 +98,20 @@ def record_event(event_type: str, title: str, details: str = "") -> ActivityEven
     return event
 
 
-def filter_events(events: Iterable[ActivityEvent], event_type: str | None = None) -> list[ActivityEvent]:
+def filter_events(
+    events: Iterable[ActivityEvent],
+    event_type: str | None = None,
+    since: str | None = None,
+) -> list[ActivityEvent]:
+    since_timestamp = parse_timestamp(since) if since else None
     filtered_events = []
     for event in events:
         event.validate()
-        if event_type is None or event.event_type == event_type:
-            filtered_events.append(event)
+        if event_type is not None and event.event_type != event_type:
+            continue
+        if since_timestamp is not None and parse_timestamp(event.timestamp) < since_timestamp:
+            continue
+        filtered_events.append(event)
     return filtered_events
 
 
@@ -135,6 +152,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     summary = subcommands.add_parser("summary", help="print activity counts by event type")
     summary.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
+    summary.add_argument("--since", default=None, help="include events at or after this ISO timestamp")
     return parser
 
 
@@ -152,7 +170,7 @@ def main() -> int:
         return 0
 
     if args.command == "summary":
-        events = filter_events(load_events(), args.type)
+        events = filter_events(load_events(), args.type, args.since)
         summary = summarize(events)
         if not summary:
             print("No events recorded yet.")
