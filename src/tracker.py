@@ -116,6 +116,11 @@ def filter_events(
     return filtered_events
 
 
+def order_events(events: Iterable[ActivityEvent], reverse: bool = False) -> list[ActivityEvent]:
+    event_list = list(events)
+    return list(reversed(event_list)) if reverse else event_list
+
+
 def limit_events(events: Iterable[ActivityEvent], limit: int | None = None) -> list[ActivityEvent]:
     event_list = list(events)
     if limit is None:
@@ -189,6 +194,7 @@ def build_parser() -> argparse.ArgumentParser:
     list_events.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
     list_events.add_argument("--since", default=None, help="include events at or after this ISO timestamp")
     list_events.add_argument("--limit", type=int, default=None, help="maximum number of events to print")
+    list_events.add_argument("--reverse", action="store_true", help="print newest matching events first")
 
     summary = subcommands.add_parser("summary", help="print activity counts by event type")
     summary.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
@@ -234,6 +240,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
 
 
