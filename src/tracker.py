@@ -124,6 +124,10 @@ def summarize(events: Iterable[ActivityEvent]) -> dict[str, int]:
     return {key: value for key, value in summary.items() if value}
 
 
+def summary_to_json(summary: dict[str, int]) -> str:
+    return json.dumps(summary, indent=2, sort_keys=True) + "\n"
+
+
 def events_to_csv(events: Iterable[ActivityEvent]) -> str:
     output = io.StringIO()
     writer = csv.DictWriter(output, fieldnames=CSV_FIELDS, lineterminator="\n")
@@ -177,6 +181,7 @@ def build_parser() -> argparse.ArgumentParser:
     summary = subcommands.add_parser("summary", help="print activity counts by event type")
     summary.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
     summary.add_argument("--since", default=None, help="include events at or after this ISO timestamp")
+    summary.add_argument("--json", action="store_true", help="print summary as JSON")
     return parser
 
 
@@ -201,6 +206,9 @@ def main() -> int:
     if args.command == "summary":
         events = filter_events(load_events(), args.type, args.since)
         summary = summarize(events)
+        if args.json:
+            print(summary_to_json(summary), end="")
+            return 0
         if not summary:
             print("No events recorded yet.")
             return 0
