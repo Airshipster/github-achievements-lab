@@ -12,6 +12,7 @@ from src.tracker import (
     load_events,
     order_events,
     parse_timestamp,
+    record_event,
     save_events,
     summarize,
     summary_total,
@@ -113,6 +114,10 @@ class TrackerTests(unittest.TestCase):
     def test_format_event_table_handles_empty_events(self):
         self.assertEqual(format_event_table([]), "No events recorded yet.")
 
+    def test_record_event_accepts_explicit_timestamp(self):
+        event = record_event("note", "imported event", timestamp="2026-05-04T00:00:00Z")
+
+        self.assertEqual(event.timestamp, "2026-05-04T00:00:00Z")
     def test_empty_title_is_rejected(self):
         event = ActivityEvent("2026-05-04T00:00:00+00:00", "note", " ")
 
@@ -175,6 +180,7 @@ class TrackerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
 
 
