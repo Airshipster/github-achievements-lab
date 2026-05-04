@@ -30,6 +30,7 @@ VALID_EVENT_TYPES = {
 
 CSV_FIELDS = ["timestamp", "event_type", "title", "details"]
 TABLE_FIELDS = ["timestamp", "event_type", "title"]
+TRACKER_VERSION = "0.2.0"
 
 
 @dataclass(frozen=True)
@@ -197,6 +198,7 @@ def format_event_table(events: Iterable[ActivityEvent]) -> str:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Track local experiment activity")
+    parser.add_argument("--version", action="version", version=f"achievement-tracker {TRACKER_VERSION}")
     subcommands = parser.add_subparsers(dest="command", required=True)
 
     record = subcommands.add_parser("record", help="record one activity event")
@@ -268,6 +270,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
 
 
 
