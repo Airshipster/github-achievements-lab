@@ -14,6 +14,7 @@ from src.tracker import (
     parse_timestamp,
     save_events,
     summarize,
+    summary_total,
     summary_to_json,
 )
 
@@ -47,6 +48,8 @@ class TrackerTests(unittest.TestCase):
 
         self.assertEqual(summarize(events), {"commit": 2, "issue": 1})
 
+    def test_summary_total_counts_all_summary_values(self):
+        self.assertEqual(summary_total({"commit": 2, "issue": 1}), 3)
     def test_summary_to_json_outputs_sorted_pretty_json(self):
         self.assertEqual(summary_to_json({"issue": 1, "commit": 2}), '{\n  "commit": 2,\n  "issue": 1\n}\n')
 
@@ -172,6 +175,7 @@ class TrackerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
 
 
