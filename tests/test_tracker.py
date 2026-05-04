@@ -115,9 +115,19 @@ class TrackerTests(unittest.TestCase):
         self.assertEqual(format_event_table([]), "No events recorded yet.")
 
     def test_record_event_accepts_explicit_timestamp(self):
-        event = record_event("note", "imported event", timestamp="2026-05-04T00:00:00Z")
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            data_path = Path(tmp_dir) / "events.json"
+            markdown_path = Path(tmp_dir) / "activity-log.md"
+            event = record_event(
+                "note",
+                "imported event",
+                timestamp="2026-05-04T00:00:00Z",
+                data_path=data_path,
+                markdown_path=markdown_path,
+            )
 
         self.assertEqual(event.timestamp, "2026-05-04T00:00:00Z")
+
     def test_empty_title_is_rejected(self):
         event = ActivityEvent("2026-05-04T00:00:00+00:00", "note", " ")
 
@@ -180,6 +190,8 @@ class TrackerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
 
 
 
