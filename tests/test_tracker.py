@@ -4,6 +4,7 @@ from pathlib import Path
 
 from src.tracker import (
     ActivityEvent,
+    TRACKER_VERSION,
     events_to_csv,
     export_csv,
     filter_events,
@@ -22,6 +23,11 @@ from src.tracker import (
 
 
 class TrackerTests(unittest.TestCase):
+    def test_tracker_version_is_semver_like(self):
+        parts = TRACKER_VERSION.split(".")
+
+        self.assertEqual(len(parts), 3)
+        self.assertTrue(all(part.isdigit() for part in parts))
     def test_order_events_can_reverse_event_order(self):
         events = [
             ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
@@ -198,6 +204,7 @@ class TrackerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
 
 
