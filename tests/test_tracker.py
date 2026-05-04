@@ -6,6 +6,7 @@ from src.tracker import (
     ActivityEvent,
     events_to_csv,
     export_csv,
+    filter_events,
     load_events,
     save_events,
     summarize,
@@ -21,6 +22,25 @@ class TrackerTests(unittest.TestCase):
         ]
 
         self.assertEqual(summarize(events), {"commit": 2, "issue": 1})
+
+    def test_filter_events_returns_only_requested_type(self):
+        events = [
+            ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
+            ActivityEvent("2026-05-04T00:01:00+00:00", "issue", "track question"),
+            ActivityEvent("2026-05-04T00:02:00+00:00", "commit", "docs update"),
+        ]
+
+        filtered = filter_events(events, "commit")
+
+        self.assertEqual([event.title for event in filtered], ["initial commit", "docs update"])
+
+    def test_filter_events_without_type_returns_all_events(self):
+        events = [
+            ActivityEvent("2026-05-04T00:00:00+00:00", "commit", "initial commit"),
+            ActivityEvent("2026-05-04T00:01:00+00:00", "issue", "track question"),
+        ]
+
+        self.assertEqual(filter_events(events), events)
 
     def test_empty_title_is_rejected(self):
         event = ActivityEvent("2026-05-04T00:00:00+00:00", "note", " ")

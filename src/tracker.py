@@ -89,6 +89,15 @@ def record_event(event_type: str, title: str, details: str = "") -> ActivityEven
     return event
 
 
+def filter_events(events: Iterable[ActivityEvent], event_type: str | None = None) -> list[ActivityEvent]:
+    filtered_events = []
+    for event in events:
+        event.validate()
+        if event_type is None or event.event_type == event_type:
+            filtered_events.append(event)
+    return filtered_events
+
+
 def summarize(events: Iterable[ActivityEvent]) -> dict[str, int]:
     summary = {event_type: 0 for event_type in sorted(VALID_EVENT_TYPES)}
     for event in events:
@@ -124,7 +133,8 @@ def build_parser() -> argparse.ArgumentParser:
     export = subcommands.add_parser("export-csv", help="write recorded events to CSV")
     export.add_argument("--output", required=True, type=Path)
 
-    subcommands.add_parser("summary", help="print activity counts by event type")
+    summary = subcommands.add_parser("summary", help="print activity counts by event type")
+    summary.add_argument("--type", choices=sorted(VALID_EVENT_TYPES), default=None)
     return parser
 
 
@@ -142,7 +152,8 @@ def main() -> int:
         return 0
 
     if args.command == "summary":
-        summary = summarize(load_events())
+        events = filter_events(load_events(), args.type)
+        summary = summarize(events)
         if not summary:
             print("No events recorded yet.")
             return 0
