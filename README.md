@@ -14,6 +14,7 @@ The goal of this project is to:
 
 - A small activity tracker CLI in `src/tracker.py`
 - Structured experiment notes in `docs/`
+- Discussion workflow notes in `docs/discussions.md`
 - A human-readable activity log in `logs/activity-log.md`
 - Tests for the local tracking logic in `tests/`
 
@@ -88,6 +89,7 @@ python -m unittest discover -s tests
 ## Status
 
 Ongoing experiment.
+
 
 
 
