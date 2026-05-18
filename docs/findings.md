@@ -9,6 +9,7 @@ This file records observed results from the experiment.
 | 2026-05-04 | Closed an issue/PR shortly after opening | Quickdraw | Confirmed | The badge appeared in the GitHub profile achievements panel. |
 | 2026-05-04 | Opened and merged multiple pull requests | Pull Shark | Confirmed | The badge appeared after the first merged PR cycles. |
 | 2026-05-04 | Merged PRs without review | YOLO | Not confirmed | Still not visible in the profile achievements panel at the time of observation. |
+| 2026-05-19 | Prepared second manual UI merge test | YOLO | Pending | This observation uses a docs-only PR intended to be merged manually through GitHub UI without review. |
 
 ## Open Questions
 
@@ -16,3 +17,4 @@ This file records observed results from the experiment.
 - Do merged pull requests with meaningful code changes behave differently from documentation-only PRs?
 - Are discussion-related achievements available on all repositories?
 - Does the merge path affect YOLO qualification?
+
