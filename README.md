@@ -10,6 +10,19 @@ The goal of this project is to:
 - Demonstrate edge cases in contribution and reputation systems
 - Keep the experiment transparent, bounded, and auditable
 
+## Current Observations
+
+Confirmed profile achievements from this experiment:
+- Quickdraw
+- Pull Shark
+
+Unconfirmed or pending observations:
+- YOLO did not appear after CLI/API merges or one manual UI merge without review.
+- Galaxy Brain requires evidence-backed accepted answers in Discussions.
+- Pair Extraordinaire requires a real co-author; fake authors are out of scope.
+
+Discussion threads are used to collect public observations and reproducible notes: https://github.com/Airshipster/github-achievements-lab/discussions
+
 ## What This Project Contains
 
 - A small activity tracker CLI in `src/tracker.py`
@@ -89,7 +102,4 @@ python -m unittest discover -s tests
 ## Status
 
 Ongoing experiment.
-
-
-
 
